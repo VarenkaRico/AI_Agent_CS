@@ -25,9 +25,6 @@ st.title("AI Support Triage Agent")
 email_text = st.text_area("Paste Client Email")
 client_email = st.text_input("Client Email")
 
-print(email_text)
-print(client_email)
-
 if st.button("Analyze and Route"):
     sentiment = classify_sentiment(email_text)
     summary = extract_issue_summary(email_text)
