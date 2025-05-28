@@ -1,12 +1,12 @@
 import streamlit as st
-import boto3
+#import boto3
 from dotenv import load_dotenv
 import os
 import uuid
 import urllib.parse
 import json
 from datetime import datetime, timedelta, timezone
-from botocore.exceptions import NoCredentialsError
+#from botocore.exceptions import NoCredentialsError
 
 
 import sys

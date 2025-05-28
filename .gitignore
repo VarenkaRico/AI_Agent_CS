@@ -9,7 +9,7 @@ __pycache__/
 # Virtual environment
 venv/
 .env
-ai_first_contact
+env_ai_first_contact
 
 # Google Credentials
 credentials.json
@@ -85,3 +85,6 @@ Thumbs.db
 
 # Output
 output/
+
+# Ignore
+ignore/

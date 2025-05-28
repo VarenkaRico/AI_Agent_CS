@@ -1,18 +1,22 @@
 import json
 from langchain.prompts import PromptTemplate
-import boto3
+#import boto3
 from dotenv import load_dotenv
 import re
-
+import os
+from openai import OpenAI
 import streamlit as st
 
 load_dotenv()
 
 ## AWS Sagemaker: NOVA
 
-bedrock = boto3.client(service_name="bedrock-runtime",
-                         region_name = "us-east-1")
-MODEL_ID = "amazon.nova-lite-v1:0"
+# bedrock = boto3.client(service_name="bedrock-runtime",
+#                          region_name = "us-east-1")
+# MODEL_ID = "amazon.nova-lite-v1:0"
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+MODEL_OPEN_AI = "gpt-3.5-turbo"
 
 def invoke_nova(prompt):
 
@@ -52,6 +56,26 @@ def invoke_nova(prompt):
         validation_result = {"email_text": "Unknown", "reasoning": "Model output could not be parsed"}
 
     return validation_result
+
+def invoke_chatgpt(prompt):
+    response = client.chat.completions.create(
+    model=MODEL_OPEN_AI,
+    messages=[{"role": "user", "content": prompt}]
+    )  
+    return response.choices[0].message.content
+
+#USEFULE FUNCTIONS
+def wrap_json_output(text):
+    """Extract valid JSON from messy model output."""
+    try:
+        # Attempt to extract a clean JSON block from output
+        match = re.search(r'{.*}', text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        else:
+            return json.loads(text)  # fallback
+    except Exception as e:
+        return {"error": f"JSON parsing failed: {e}", "raw": text}
 
 # PROMPTS
 prompt_sentiment = PromptTemplate.from_template(
@@ -162,23 +186,30 @@ prompt_next_question = PromptTemplate.from_template(
    
 def classify_sentiment(email):
     prompt = prompt_sentiment.format(email=email)
-    response = invoke_nova(prompt)
-    return response
+    #response = invoke_nova(prompt)
+    response = invoke_chatgpt(prompt)
+    return wrap_json_output(response)
 
 def extract_issue_summary(email):
     prompt = prompt_issue_extraction.format(email=email)
-    response = invoke_nova(prompt)
-    return response
+    #response = invoke_nova(prompt)
+    response = invoke_chatgpt(prompt)
+    return wrap_json_output(response)
+
 
 def detect_urgency(email):
     prompt = prompt_urgency.format(email=email)
-    response = invoke_nova(prompt)
-    return response
+    #response = invoke_nova(prompt)
+    response = invoke_chatgpt(prompt)
+    return wrap_json_output(response)
+
 
 def start_chat(email, questions):
     prompt = prompt_greeting.format(email=email, questions=questions)
-    response = invoke_nova(prompt)
-    return response
+    #response = invoke_nova(prompt)
+    response = invoke_chatgpt(prompt)
+    return wrap_json_output(response)
+
 
 def generate_next_question(context):
     email = context.get("email", "")
@@ -195,5 +226,8 @@ def generate_next_question(context):
                                          interaction_history = history_str
                                          )
     
-    response = invoke_nova(prompt)
-    return response
+    #response = invoke_nova(prompt)
+    response = invoke_chatgpt(prompt)
+    return wrap_json_output(response)
+
+
